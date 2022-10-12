@@ -36,11 +36,22 @@ const init = () => {
         stage.removeChild(startText);
     }
     startButton.addEventListener("click", handleStartButtonClick);
+    
+    /*
+        プレイ画面
+    */
+
+    const gameUpdate = () => {
+        alert("play now");
+    }
 
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addEventListener("tick", tickUpdate);
 
     function tickUpdate() {
+        if (!isTitle) {
+            gameUpdate();
+        }
         stage.update();
     }
 }
