@@ -1,5 +1,7 @@
 const screenSizeX = 960;
 const screenSizeY = 540;
+const groundRadius = 50;
+const playerRadius = 10;
 
 const init = () => {
 
@@ -16,20 +18,61 @@ const init = () => {
     let player = { };
     let ground;
 
+    const getPos = () => {
+        let position = { };
+        const rad = (player.theta / 180.0) * Math.PI;
+        position.x = (groundRadius + playerRadius) * Math.cos(rad);
+        position.y = (groundRadius + playerRadius) * Math.sin(rad);
+        return position;
+    }
+
     const gameInit = () => {
         ground = new createjs.Shape();
         ground.graphics.beginFill("White");
-        ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, 50);
+        ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, groundRadius);
         stage.addChild(ground);
 
         player.body = new createjs.Shape();
         player.body.graphics.beginFill("Red");
-        player.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2 - 60, 10);
+        player.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, playerRadius);
+        player.theta = 270;
+        player.isMovePositive = false;
+        player.isMoveNegative = false;
         stage.addChild(player.body);
     }
 
-    const gameUpdate = () => {
+    const playerMove = () => {
+        if (player.isMovePositive) {
+            player.theta += 3;
+        }
+        if (player.isMoveNegative) {
+            player.theta -= 3;
+        }
+        const position = getPos();
+        player.body.x = position.x;
+        player.body.y = position.y;
+    }
 
+    const gameUpdate = () => {
+        playerMove();
+    }
+
+    const handleKeydown = (event) => {
+        if (event.key === 'a') {
+            player.isMoveNegative = true;
+        }
+        if (event.key === 'd') {
+            player.isMovePositive = true;
+        }
+    }
+
+    const handleKeyup = (event) => {
+        if (event.key === 'a') {
+            player.isMoveNegative = false;
+        }
+        if (event.key === 'd') {
+            player.isMovePositive = false;
+        }
     }
 
     /* 
@@ -62,9 +105,11 @@ const init = () => {
     startButton.addEventListener("click", handleStartButtonClick);
 
     createjs.Ticker.setFPS(60);
-    createjs.Ticker.addEventListener("tick", tickUpdate);
+    createjs.Ticker.addEventListener("tick", handleTick);
+    window.addEventListener("keydown", handleKeydown);
+    window.addEventListener("keyup", handleKeyup);
 
-    function tickUpdate() {
+    function handleTick() {
         if (!isTitle) {
             gameUpdate();
         }
