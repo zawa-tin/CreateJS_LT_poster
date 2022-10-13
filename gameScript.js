@@ -9,8 +9,31 @@ const init = () => {
     bg.graphics.beginFill("black").drawRect(0, 0, screenSizeX, screenSizeY);
     stage.addChild(bg);
 
+    /*
+        プレイ画面
+    */
+
+    let player = { };
+    let ground;
+
+    const gameInit = () => {
+        ground = new createjs.Shape();
+        ground.graphics.beginFill("White");
+        ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, 50);
+        stage.addChild(ground);
+
+        player.body = new createjs.Shape();
+        player.body.graphics.beginFill("Red");
+        player.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2 - 60, 10);
+        stage.addChild(player.body);
+    }
+
+    const gameUpdate = () => {
+
+    }
+
     /* 
-        タイトル画面関連
+        タイトル画面
         isTitle: タイトル画面を描画するべきかどうか
         startButton: 中央の四角形
         handleStartButtonClick: 四角形が押されたらタイトル画面の情報を破棄する
@@ -34,16 +57,9 @@ const init = () => {
         isTitle = false; 
         stage.removeChild(startButton);
         stage.removeChild(startText);
+        gameInit();
     }
     startButton.addEventListener("click", handleStartButtonClick);
-    
-    /*
-        プレイ画面
-    */
-
-    const gameUpdate = () => {
-        alert("play now");
-    }
 
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addEventListener("tick", tickUpdate);
