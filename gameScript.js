@@ -2,6 +2,7 @@ const screenSizeX = 960;
 const screenSizeY = 540;
 const groundRadius = 50;
 const playerRadius = 10;
+const enemyRadius = 10;
 
 const init = () => {
 
@@ -13,6 +14,10 @@ const init = () => {
 
     /*
         プレイ画面
+    */
+
+    /*
+        player情報
     */
 
     let player = { };
@@ -75,6 +80,42 @@ const init = () => {
         }
     }
 
+    /*
+        Enemy情報
+    */
+
+    class Enemy {
+        constructor(initPos) {
+            console.log("hi");
+            this.body = new createjs.Shape();
+            this.body.graphics.beginFill("Blue");
+            this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
+            this.theta = initPos;
+            this.posRadius = 1000;
+            this.move();
+            stage.addChild(this.body);
+        }
+
+        move() {
+            if (this.posRadius > 300) {
+                this.posRadius--;
+            }
+            this.body.x = this.posRadius * Math.cos((this.theta / 180.0) * Math.PI);
+            this.body.y = this.posRadius * Math.sin((this.theta / 180.0) * Math.PI);
+        }
+
+        destruct() {
+            // TODO
+        }        
+    }
+
+    let enemies = [];
+
+    const enemyGenerate = () => {
+        const enemy = new Enemy(Math.floor(Math.random() * 360))
+        enemies.push(enemy);
+    }
+
     /* 
         タイトル画面
         isTitle: タイトル画面を描画するべきかどうか
@@ -102,6 +143,7 @@ const init = () => {
         stage.removeChild(startText);
         gameInit();
     }
+
     startButton.addEventListener("click", handleStartButtonClick);
 
     createjs.Ticker.setFPS(60);
@@ -112,6 +154,10 @@ const init = () => {
     function handleTick() {
         if (!isTitle) {
             gameUpdate();
+            if (enemies.length < 10) {
+                enemyGenerate();
+            }
+            enemies.forEach(enemy => enemy.move());
         }
         stage.update();
     }
