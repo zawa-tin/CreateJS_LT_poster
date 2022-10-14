@@ -36,6 +36,22 @@ const init = () => {
 
     const keyboardInfo = new KeyboardInfo();
 
+    class Vector {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        getDist() {
+            return Math.sqrt(this.x * this.x + this.y * this.y);
+        }
+
+        normalize() {
+            const dist = this.getDist();
+            return new Vector(this.x / dist, this.y / dist);
+        }
+    }
+
     /*
         弾丸の情報
     */
@@ -47,7 +63,7 @@ const init = () => {
             this.body = new createjs.Shape();
             this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, 10);
             this.speed = 0;
-            this.vector = { x: 0, y: 0 };
+            this.vector = new Vector(0, 0);
         } 
 
         fire(isPlayer, body, vector, speed) {
@@ -67,8 +83,8 @@ const init = () => {
 
         isIn() {
             let res = true;
-            res &= (-screenSizeX / 2 <= this.body.x <= screenSizeX / 2);
-            res &= (-screenSizeY / 2 <= this.body.y <= screenSizeY / 2);
+            res &&= (-screenSizeX / 2 <= this.body.x && this.body.x <= screenSizeX / 2);
+            res &&= (-screenSizeY / 2 <= this.body.y && this.body.y <= screenSizeY / 2);
             return res;
         }
         
@@ -96,18 +112,11 @@ const init = () => {
         }
 
         getPosition() {
-            const position = { x: 0, y: 0 };
+            const position = new Vector(0, 0);
             const rad = (player.theta / 180.0) * Math.PI;
             position.x = (groundRadius + playerRadius) * Math.cos(rad);
             position.y = (groundRadius + playerRadius) * Math.sin(rad);
             return position;
-        }
-
-        normalize(vector) {
-            const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-            vector.x /= dist;
-            vector.y /= dist;
-            return vector;
         }
 
         move() {
@@ -124,13 +133,13 @@ const init = () => {
 
         attack() {
             const bullet = new Bullet();
-            const vector = this.normalize(this.getPosition());
+            let vector = this.getPosition();
+            vector = vector.normalize();
             bullet.fire(true, this.body, vector, 10);
         }
     }
 
     const player = new Player();
-
 
     const gameInit = () => {
         ground = new createjs.Shape();
@@ -176,8 +185,8 @@ const init = () => {
             this.body.graphics.beginFill("Blue");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
             this.theta = initTheta;
-            this.posEllipseX = 750;
-            this.posEllipseY = 540;
+            this.posEllipseX = screenEllipseX + 300;
+            this.posEllipseY = screenEllipseY + 300;
             this.move();
             stage.addChild(this.body);
         }
@@ -254,6 +263,7 @@ const init = () => {
             bullets[i].move();
             if (!bullets[i].isIn()) {
                 bullets[i].destruct(i);
+                i--;
             }
         }
     }
