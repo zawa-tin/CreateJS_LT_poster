@@ -6,6 +6,7 @@ const groundRadius = 50;
 const playerRadius = 10;
 const enemyRadius = 10;
 const enemyUpperLimit = 25;
+const playerBulletUpperLimit = 200;
 
 const init = () => {
 
@@ -14,6 +15,45 @@ const init = () => {
     let bg = new createjs.Shape();
     bg.graphics.beginFill("black").drawRect(0, 0, screenSizeX, screenSizeY);
     stage.addChild(bg);
+
+    /*
+        Queueを利用してみます
+        (中身のswapとかができる超なんちゃってカスQueueです)
+        (二分探索木はさすがに面倒くさかった・・・・)
+    */
+
+    class Queue {
+        constructor(size) {
+            this.data = []
+            this.head = 0;
+            this.tail = 0;
+            this.size = size;
+        }
+
+        isEmpty() {
+            return (this.head === this.tail);
+        }
+        
+        isFull() {
+            return ((this.tail + 1) % this.size === this.head);
+        } 
+
+        dequeue() {
+            if (this.isEmpty()) {
+                return;
+            }
+            stage.removeChild(this.data[this.head]);
+            this.head = (this.head + 1) % this.size;
+        }
+
+        enqueue(value) {
+            if (this.isFull()) {
+                this.dequeue();
+            }
+            this.data[this.tail] = value;
+            this.tail = (this.tail + 1) % this.size;
+        }
+    }
 
     /*
         プレイ画面
@@ -56,7 +96,7 @@ const init = () => {
         弾丸の情報
     */
 
-    let bullets = [];
+    let playerBullets = new Queue(playerBulletUpperLimit);
 
     class Bullet {
         constructor() {
@@ -73,7 +113,7 @@ const init = () => {
             this.vector = vector;
             this.speed = speed;
             stage.addChild(this.body);
-            bullets.push(this);
+            playerBullets.enqueue(this);
         }
 
         move() {
@@ -90,7 +130,6 @@ const init = () => {
         
         destruct(index) {
             stage.removeChild(this);
-            bullets.splice(index, 1);
         }
 
     }
@@ -259,12 +298,8 @@ const init = () => {
         if (keyboardInfo.k) {
             player.attack();
         }
-        for (let i = 0 ; i < bullets.length ; i++) {
-            bullets[i].move();
-            if (!bullets[i].isIn()) {
-                bullets[i].destruct(i);
-                i--;
-            }
+        for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
+            playerBullets.data[i].move();
         }
     }
 
