@@ -204,12 +204,22 @@ const init = () => {
 
     const player = new Player();
 
+    const hearts = [];
+
     const gameInit = () => {
         ground = new createjs.Shape();
         ground.graphics.beginFill("White");
         ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, groundRadius);
         ground.radius = groundRadius;
         stage.addChild(ground);
+
+        for (let i = 0 ; i < HP ; i++) {
+            const heart = new createjs.Bitmap("Resources/Heart.png");
+            heart.scale = 0.15;
+            heart.x += i * 30;
+            stage.addChild(heart);
+            hearts.push(heart);
+        }
 
         player.initialize();
     }
@@ -418,7 +428,9 @@ const init = () => {
             if (collide(enemiesBullets.data[i].body, player.body)) {
                 enemiesBullets.erase(i);
                 player.HP--;
-                if (player.HP == 0) {
+                stage.removeChild(hearts[hearts.length - 1]);
+                hearts.pop();
+                if (player.HP < 0) {
                     alert("game over");
                     stage.removeAllChildren();
                     stage.addChild(bg);
