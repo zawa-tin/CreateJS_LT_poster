@@ -19,6 +19,9 @@ const init = () => {
         プレイ画面
     */
 
+    // 地面
+    let ground;
+
     /*
         キーボードの入力情報
     */
@@ -27,16 +30,58 @@ const init = () => {
         constructor() {
             this.a = false;
             this.d = false;
+            this.k = false;
         }
     }
 
     const keyboardInfo = new KeyboardInfo();
 
     /*
-        player情報
+        弾丸の情報
     */
 
-    let ground;
+    let bullets = [];
+
+    class Bullet {
+        constructor() {
+            this.body = new createjs.Shape();
+            this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, 10);
+            this.speed = 0;
+            this.vector = { x: 0, y: 0 };
+        } 
+
+        fire(isPlayer, body, vector, speed) {
+            this.isPlayer = isPlayer;
+            this.body.x = body.x;
+            this.body.y = body.y;
+            this.vector = vector;
+            this.speed = speed;
+            stage.addChild(this.body);
+            bullets.push(this);
+        }
+
+        move() {
+            this.body.x += this.speed * this.vector.x;
+            this.body.y += this.speed * this.vector.y;
+        }
+
+        isIn() {
+            let res = true;
+            res &= (-screenSizeX / 2 <= this.body.x <= screenSizeX / 2);
+            res &= (-screenSizeY / 2 <= this.body.y <= screenSizeY / 2);
+            return res;
+        }
+        
+        destruct(index) {
+            stage.removeChild(this);
+            bullets.splice(index, 1);
+        }
+
+    }
+
+    /*
+        player情報
+    */
 
     class Player {
         constructor() {
@@ -51,11 +96,18 @@ const init = () => {
         }
 
         getPosition() {
-            const position = { };
+            const position = { x: 0, y: 0 };
             const rad = (player.theta / 180.0) * Math.PI;
             position.x = (groundRadius + playerRadius) * Math.cos(rad);
             position.y = (groundRadius + playerRadius) * Math.sin(rad);
             return position;
+        }
+
+        normalize(vector) {
+            const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+            vector.x /= dist;
+            vector.y /= dist;
+            return vector;
         }
 
         move() {
@@ -69,9 +121,16 @@ const init = () => {
             this.body.x = position.x;
             this.body.y = position.y;
         }
+
+        attack() {
+            const bullet = new Bullet();
+            const vector = this.normalize(this.getPosition());
+            bullet.fire(true, this.body, vector, 10);
+        }
     }
 
     const player = new Player();
+
 
     const gameInit = () => {
         ground = new createjs.Shape();
@@ -82,9 +141,6 @@ const init = () => {
         player.initialize();
     }
 
-    const gameUpdate = () => {
-        player.move();
-    }
 
     const handleKeydown = (event) => {
         if (event.key === 'a') {
@@ -92,6 +148,9 @@ const init = () => {
         }
         if (event.key === 'd') {
             keyboardInfo.d = true;
+        }
+        if (event.key === 'k') {
+            keyboardInfo.k = true;
         }
     }
 
@@ -101,6 +160,9 @@ const init = () => {
         }
         if (event.key === 'd') {
             keyboardInfo.d = false;
+        }
+        if (event.key === 'k') {
+            keyboardInfo.k = false;
         }
     }
 
@@ -179,13 +241,26 @@ const init = () => {
     window.addEventListener("keydown", handleKeydown);
     window.addEventListener("keyup", handleKeyup);
 
+    const gameUpdate = () => {
+        player.move();
+        if (enemies.length < enemyUpperLimit) {
+            enemyGenerate();
+        }
+        enemies.forEach(enemy => enemy.move());
+        if (keyboardInfo.k) {
+            player.attack();
+        }
+        for (let i = 0 ; i < bullets.length ; i++) {
+            bullets[i].move();
+            if (!bullets[i].isIn()) {
+                bullets[i].destruct(i);
+            }
+        }
+    }
+
     function handleTick() {
         if (!isTitle) {
             gameUpdate();
-            if (enemies.length < enemyUpperLimit) {
-                enemyGenerate();
-            }
-            enemies.forEach(enemy => enemy.move());
         }
         stage.update();
     }
