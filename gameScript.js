@@ -85,6 +85,7 @@ const init = () => {
             this.a = false;
             this.d = false;
             this.k = false;
+            this.enter = false;
         }
     }
 
@@ -214,29 +215,6 @@ const init = () => {
     }
 
 
-    const handleKeydown = (event) => {
-        if (event.key === 'a') {
-            keyboardInfo.a = true;
-        }
-        if (event.key === 'd') {
-            keyboardInfo.d = true;
-        }
-        if (event.key === 'k') {
-            keyboardInfo.k = true;
-        }
-    }
-
-    const handleKeyup = (event) => {
-        if (event.key === 'a') {
-            keyboardInfo.a = false;
-        }
-        if (event.key === 'd') {
-            keyboardInfo.d = false;
-        }
-        if (event.key === 'k') {
-            keyboardInfo.k = false;
-        }
-    }
 
     /*
         Enemy情報
@@ -318,6 +296,64 @@ const init = () => {
     startText.y = screenSizeY / 2 - 100;
     stage.addChild(startText);
 
+    /* 
+        Result画面
+        RREESSUULLTT
+    */
+
+    const displayResult = () => {
+        const resultText = new createjs.Text("Your score is " + score.toString() + "!!", "80px Arial", "#ffffff");
+        resultText.textAlign = "center";
+        resultText.x = screenSizeX / 2;
+        resultText.y = screenSizeY / 2;
+        stage.addChild(resultText);
+
+        const restartText = new createjs.Text("You can restart if you press Enter", "20px Arial", "#ffffff");
+        restartText.textAlign = "center";
+        restartText.x = screenSizeX / 2;
+        restartText.y = screenSizeY / 2 - 100;
+        stage.addChild(restartText)
+    }
+
+    let isResult = false;
+
+    /*
+        ゲーム進行管理、その他
+        OOTTHHEERR
+    */
+
+    // score
+    let score = 0;
+
+    const handleKeydown = (event) => {
+        if (event.key === 'a') {
+            keyboardInfo.a = true;
+        }
+        if (event.key === 'd') {
+            keyboardInfo.d = true;
+        }
+        if (event.key === 'k') {
+            keyboardInfo.k = true;
+        }
+        if (event.key === 'Enter') {
+            keyboardInfo.enter = true;
+        }
+    }
+
+    const handleKeyup = (event) => {
+        if (event.key === 'a') {
+            keyboardInfo.a = false;
+        }
+        if (event.key === 'd') {
+            keyboardInfo.d = false;
+        }
+        if (event.key === 'k') {
+            keyboardInfo.k = false;
+        }
+        if (event.key === 'enter') {
+            keyboardInfo.enter = false;
+        }
+    }
     const handleStartButtonClick = () => {
         isTitle = false; 
         stage.removeChild(startButton);
@@ -365,6 +401,7 @@ const init = () => {
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
             for (let j = enemies.head ; j != enemies.tail ; j = (j + 1) % enemies.size) {
                 if (collide(playerBullets.data[i].body, enemies.data[j].body)) {
+                    score += 10;
                     playerBullets.erase(i);
                     enemies.erase(j);
                 }
@@ -383,18 +420,23 @@ const init = () => {
                 player.HP--;
                 if (player.HP == 0) {
                     alert("game over");
-                    createjs.Ticker.removeAllEventListeners();
-                    stage.removeAllEventListeners();
+                    stage.removeAllChildren();
+                    stage.addChild(bg);
+                    isResult = true;
+                    displayResult();
                 }
             }
         }
     }
 
     function handleTick() {
-        if (!isTitle) {
+        if (!isTitle && !isResult) {
             gameUpdate();
         }
         stage.update();
+        if (isResult && keyboardInfo.enter) {
+            location.reload();
+        }
     }
 }
 
