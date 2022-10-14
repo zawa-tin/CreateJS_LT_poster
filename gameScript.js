@@ -1,8 +1,11 @@
 const screenSizeX = 960;
 const screenSizeY = 540;
+const screenEllipseX = 450;
+const screenEllipseY = 240;
 const groundRadius = 50;
 const playerRadius = 10;
 const enemyRadius = 10;
+const enemyUpperLimit = 25;
 
 const init = () => {
 
@@ -85,23 +88,35 @@ const init = () => {
     */
 
     class Enemy {
-        constructor(initPos) {
-            console.log("hi");
+        constructor(initTheta) {
             this.body = new createjs.Shape();
             this.body.graphics.beginFill("Blue");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
-            this.theta = initPos;
-            this.posRadius = 1000;
+            this.theta = initTheta;
+            // this.posRadius = 1000;
+            this.posEllipseX = 750;
+            this.posEllipseY = 540;
             this.move();
             stage.addChild(this.body);
         }
 
         move() {
+            /* 
             if (this.posRadius > 300) {
                 this.posRadius--;
             }
             this.body.x = this.posRadius * Math.cos((this.theta / 180.0) * Math.PI);
             this.body.y = this.posRadius * Math.sin((this.theta / 180.0) * Math.PI);
+            */
+            if (this.posEllipseX > screenEllipseX) {
+                this.posEllipseX--;
+            }
+            if (this.posEllipseY > screenEllipseY) {
+                this.posEllipseY--;
+            }
+            const rad = (this.theta / 180.0) * Math.PI;
+            this.body.x = this.posEllipseX * Math.cos(rad);
+            this.body.y = -this.posEllipseY * Math.sin(rad);
         }
 
         destruct() {
@@ -154,7 +169,7 @@ const init = () => {
     function handleTick() {
         if (!isTitle) {
             gameUpdate();
-            if (enemies.length < 10) {
+            if (enemies.length < enemyUpperLimit) {
                 enemyGenerate();
             }
             enemies.forEach(enemy => enemy.move());
