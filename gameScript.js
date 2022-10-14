@@ -5,8 +5,11 @@ const screenEllipseY = 240;
 const groundRadius = 50;
 const playerRadius = 10;
 const enemyRadius = 10;
-const enemyUpperLimit = 25;
+const enemyUpperLimit = 10;
 const playerBulletUpperLimit = 200;
+const enemyBulletUpperLimit = 2500;
+const playerBulletSize = 5;
+const enemyBulletSize = 5;
 
 const init = () => {
 
@@ -73,6 +76,7 @@ const init = () => {
 
     /*
         キーボードの入力情報
+        KKEEYY
     */
 
     class KeyboardInfo {
@@ -111,26 +115,26 @@ const init = () => {
 
     /*
         弾丸の情報
+        BBUULLLLEETT
     */
 
     let playerBullets = new Queue(playerBulletUpperLimit);
+    let enemiesBullets = new Queue(enemyBulletUpperLimit);
 
     class Bullet {
-        constructor() {
+        constructor(radius) {
             this.body = new createjs.Shape();
-            this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, 10);
+            this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, radius);
             this.speed = 0;
             this.vector = new Vector(0, 0);
         } 
 
-        fire(isPlayer, body, vector, speed) {
-            this.isPlayer = isPlayer;
+        fire(body, vector, speed) {
             this.body.x = body.x;
             this.body.y = body.y;
             this.vector = vector;
             this.speed = speed;
             stage.addChild(this.body);
-            playerBullets.enqueue(this);
         }
 
         move() {
@@ -144,15 +148,12 @@ const init = () => {
             res &&= (-screenSizeY / 2 <= this.body.y && this.body.y <= screenSizeY / 2);
             return res;
         }
-        
-        destruct(index) {
-            stage.removeChild(this);
-        }
 
     }
 
     /*
         player情報
+        PPLLAAYYEERR
     */
 
     class Player {
@@ -188,10 +189,11 @@ const init = () => {
         }
 
         attack() {
-            const bullet = new Bullet();
+            const bullet = new Bullet(playerBulletSize);
             let vector = this.getPosition();
             vector = vector.normalize();
-            bullet.fire(true, this.body, vector, 10);
+            bullet.fire(this.body, vector, 10);
+            playerBullets.enqueue(bullet);
         }
     }
 
@@ -233,6 +235,7 @@ const init = () => {
 
     /*
         Enemy情報
+        EENNEEMMYY
     */
 
     class Enemy {
@@ -243,6 +246,7 @@ const init = () => {
             this.theta = initTheta;
             this.posEllipseX = screenEllipseX + 100;
             this.posEllipseY = screenEllipseY + 100;
+            this.attackTime = Date.now();
             this.move();
             stage.addChild(this.body);
         }
@@ -259,9 +263,13 @@ const init = () => {
             this.body.y = -this.posEllipseY * Math.sin(rad);
         }
 
-        destruct() {
-            // TODO
-        }        
+        attack() {
+            this.attackTime = Date.now();
+            const direction = new Vector(player.body.x - this.body.x, player.body.y - this.body.y).normalize(); 
+            const bullet = new Bullet(enemyBulletSize);
+            enemiesBullets.enqueue(bullet);
+            bullet.fire(this.body, direction, enemyBulletSize);
+        }
     }
 
     let enemies = new Queue(enemyUpperLimit);
@@ -271,10 +279,10 @@ const init = () => {
         enemies.enqueue(enemy);
     }
 
-
     /*
         図形の衝突判定
         （CreateJSに実装されていますが、使いづらく感じたので自前実装します)
+        // CCOOLLIIDDEE
     */
 
     const collide = (data1, data2) => {
@@ -284,6 +292,7 @@ const init = () => {
 
     /* 
         タイトル画面
+        TTIITTLLEE
         isTitle: タイトル画面を描画するべきかどうか
         startButton: 中央の四角形
         handleStartButtonClick: 四角形が押されたらタイトル画面の情報を破棄する
@@ -317,6 +326,7 @@ const init = () => {
     window.addEventListener("keydown", handleKeydown);
     window.addEventListener("keyup", handleKeyup);
 
+    // UUPPDDAATTEE
     const gameUpdate = () => {
         player.move();
         // 敵の生成
@@ -327,6 +337,12 @@ const init = () => {
         for (let i = enemies.head ; i != enemies.tail ; i = (i + 1) % enemies.size) {
             enemies.data[i].move();
         }
+        // 敵の攻撃
+        for (let i = enemies.head ; i != enemies.tail ; i = (i + 1) % enemies.size) {
+            if (Date.now() - enemies.data[i].attackTime > 500) {
+                enemies.data[i].attack();
+            }
+        }
         // プレイ屋ーのアタック
         if (keyboardInfo.k) {
             player.attack();
@@ -334,6 +350,10 @@ const init = () => {
         // プレイヤーの弾の移動
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
             playerBullets.data[i].move();
+        }
+        // 敵の弾の移動
+        for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
+            enemiesBullets.data[i].move();
         }
         // あたり判定
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
