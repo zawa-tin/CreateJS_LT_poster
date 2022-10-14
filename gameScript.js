@@ -42,7 +42,7 @@ const init = () => {
             if (this.isEmpty()) {
                 return;
             }
-            stage.removeChild(this.data[this.head]);
+            stage.removeChild(this.data[this.head].body);
             this.head = (this.head + 1) % this.size;
         }
 
@@ -52,6 +52,15 @@ const init = () => {
             }
             this.data[this.tail] = value;
             this.tail = (this.tail + 1) % this.size;
+        }
+
+        getLength() {
+            return ((this.tail - this.head) + this.size) % this.size;
+        }
+
+        erase(index) {
+            [this.data[this.head], this.data[index]] = [this.data[index], this.data[this.head]];
+            this.dequeue();
         }
     }
 
@@ -86,10 +95,18 @@ const init = () => {
             return Math.sqrt(this.x * this.x + this.y * this.y);
         }
 
+        getBetweenDist(opponent) {
+            return Math.sqrt((this.x - opponent.x) * (this.x - opponent.x) + (this.y - opponent.y) * (this.y - opponent.y));
+        }
+
         normalize() {
             const dist = this.getDist();
             return new Vector(this.x / dist, this.y / dist);
         }
+    }
+
+    const generateVector = (body) => {
+        return new Vector(body.x, body.y);
     }
 
     /*
@@ -224,8 +241,8 @@ const init = () => {
             this.body.graphics.beginFill("Blue");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
             this.theta = initTheta;
-            this.posEllipseX = screenEllipseX + 300;
-            this.posEllipseY = screenEllipseY + 300;
+            this.posEllipseX = screenEllipseX + 100;
+            this.posEllipseY = screenEllipseY + 100;
             this.move();
             stage.addChild(this.body);
         }
@@ -247,11 +264,22 @@ const init = () => {
         }        
     }
 
-    let enemies = [];
+    let enemies = new Queue(enemyUpperLimit);
 
     const enemyGenerate = () => {
         const enemy = new Enemy(Math.floor(Math.random() * 360))
-        enemies.push(enemy);
+        enemies.enqueue(enemy);
+    }
+
+
+    /*
+        図形の衝突判定
+        （CreateJSに実装されていますが、使いづらく感じたので自前実装します)
+    */
+
+    const collide = (data1, data2) => {
+        const dist = generateVector(data1).getBetweenDist(generateVector(data2));
+        return (dist <= 20);
     }
 
     /* 
@@ -291,15 +319,30 @@ const init = () => {
 
     const gameUpdate = () => {
         player.move();
-        if (enemies.length < enemyUpperLimit) {
+        // 敵の生成
+        if (enemies.getLength() < enemyUpperLimit - 1) {
             enemyGenerate();
         }
-        enemies.forEach(enemy => enemy.move());
+        // 敵の移動
+        for (let i = enemies.head ; i != enemies.tail ; i = (i + 1) % enemies.size) {
+            enemies.data[i].move();
+        }
+        // プレイ屋ーのアタック
         if (keyboardInfo.k) {
             player.attack();
         }
+        // プレイヤーの弾の移動
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
             playerBullets.data[i].move();
+        }
+        // あたり判定
+        for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
+            for (let j = enemies.head ; j != enemies.tail ; j = (j + 1) % enemies.size) {
+                if (collide(playerBullets.data[i].body, enemies.data[j].body)) {
+                    playerBullets.erase(i);
+                    enemies.erase(j);
+                }
+            }
         }
     }
 
