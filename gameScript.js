@@ -20,19 +20,58 @@ const init = () => {
     */
 
     /*
+        キーボードの入力情報
+    */
+
+    class KeyboardInfo {
+        constructor() {
+            this.a = false;
+            this.d = false;
+        }
+    }
+
+    const keyboardInfo = new KeyboardInfo();
+
+    /*
         player情報
     */
 
-    let player = { };
     let ground;
 
-    const getPlayerPos = () => {
-        let position = { };
-        const rad = (player.theta / 180.0) * Math.PI;
-        position.x = (groundRadius + playerRadius) * Math.cos(rad);
-        position.y = (groundRadius + playerRadius) * Math.sin(rad);
-        return position;
+    class Player {
+        constructor() {
+        }
+
+        initialize() {
+            this.body = new createjs.Shape();
+            this.body.graphics.beginFill("Red");
+            this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, playerRadius);
+            this.theta = 270;
+            stage.addChild(player.body);
+        }
+
+        getPosition() {
+            const position = { };
+            const rad = (player.theta / 180.0) * Math.PI;
+            position.x = (groundRadius + playerRadius) * Math.cos(rad);
+            position.y = (groundRadius + playerRadius) * Math.sin(rad);
+            return position;
+        }
+
+        move() {
+            if (keyboardInfo.d) {
+                this.theta += 3;
+            }
+            if (keyboardInfo.a) {
+                this.theta -= 3;
+            }
+            const position = this.getPosition();
+            this.body.x = position.x;
+            this.body.y = position.y;
+        }
     }
+
+    const player = new Player();
 
     const gameInit = () => {
         ground = new createjs.Shape();
@@ -40,46 +79,28 @@ const init = () => {
         ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, groundRadius);
         stage.addChild(ground);
 
-        player.body = new createjs.Shape();
-        player.body.graphics.beginFill("Red");
-        player.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, playerRadius);
-        player.theta = 270;
-        player.isMovePositive = false;
-        player.isMoveNegative = false;
-        stage.addChild(player.body);
-    }
-
-    const playerMove = () => {
-        if (player.isMovePositive) {
-            player.theta += 3;
-        }
-        if (player.isMoveNegative) {
-            player.theta -= 3;
-        }
-        const position = getPlayerPos();
-        player.body.x = position.x;
-        player.body.y = position.y;
+        player.initialize();
     }
 
     const gameUpdate = () => {
-        playerMove();
+        player.move();
     }
 
     const handleKeydown = (event) => {
         if (event.key === 'a') {
-            player.isMoveNegative = true;
+            keyboardInfo.a = true;
         }
         if (event.key === 'd') {
-            player.isMovePositive = true;
+            keyboardInfo.d = true;
         }
     }
 
     const handleKeyup = (event) => {
         if (event.key === 'a') {
-            player.isMoveNegative = false;
+            keyboardInfo.a = false;
         }
         if (event.key === 'd') {
-            player.isMovePositive = false;
+            keyboardInfo.d = false;
         }
     }
 
