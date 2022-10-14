@@ -109,6 +109,13 @@ const init = () => {
             const dist = this.getDist();
             return new Vector(this.x / dist, this.y / dist);
         }
+
+        rotate(theta) {
+            console.log(theta);
+            const resX = this.x * Math.cos(theta) - this.y * Math.sin(theta);
+            const resY = this.x * Math.sin(theta) + this.y * Math.cos(theta);
+            return new Vector(resX, resY);
+        }
     }
 
     const generateVector = (body) => {
@@ -266,11 +273,27 @@ const init = () => {
         }
     }
 
+    class Enemy2 extends Enemy {
+        attack() {
+            this.attackTime = Date.now();
+            const direction = new Vector(player.body.x - this.body.x, player.body.y - this.body.y).normalize().rotate(Math.floor(Math.random() * 3) - 1);
+            const bullet = new Bullet(enemyBulletSize);
+            enemiesBullets.enqueue(bullet);
+            bullet.fire(this.body, direction, enemyBulletSize);
+        }
+    }
+
     let enemies = new Queue(enemyUpperLimit);
 
     const enemyGenerate = () => {
-        const enemy = new Enemy(Math.floor(Math.random() * 360))
-        enemies.enqueue(enemy);
+        if (Math.random() < 2.0 / 3.0) {
+            const enemy = new Enemy(Math.floor(Math.random() * 360));
+            enemies.enqueue(enemy);
+        }
+        else {
+            const enemy = new Enemy2(Math.floor(Math.random() * 360));
+            enemies.enqueue(enemy);
+        }
     }
 
     /*
