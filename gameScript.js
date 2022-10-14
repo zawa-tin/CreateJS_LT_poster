@@ -5,11 +5,12 @@ const screenEllipseY = 240;
 const groundRadius = 50;
 const playerRadius = 10;
 const enemyRadius = 10;
-const enemyUpperLimit = 10;
+const enemyUpperLimit = 2;
 const playerBulletUpperLimit = 200;
 const enemyBulletUpperLimit = 2500;
 const playerBulletSize = 5;
 const enemyBulletSize = 5;
+const HP = 5;
 
 const init = () => {
 
@@ -165,6 +166,7 @@ const init = () => {
             this.body.graphics.beginFill("Red");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, playerRadius);
             this.theta = 270;
+            this.HP = HP;
             stage.addChild(player.body);
         }
 
@@ -365,10 +367,21 @@ const init = () => {
             }
         }
         // 敵の弾と地面のあたり判定
-        console.log(enemiesBullets.getLength());
         for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
             if (collide(enemiesBullets.data[i].body, ground)) {
                 enemiesBullets.erase(i);
+            }
+        }
+        // 敵の弾とプレイヤーのあたり判定
+        for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
+            if (collide(enemiesBullets.data[i].body, player.body)) {
+                enemiesBullets.erase(i);
+                player.HP--;
+                if (player.HP == 0) {
+                    alert("game over");
+                    createjs.Ticker.removeAllEventListeners();
+                    stage.removeAllEventListeners();
+                }
             }
         }
     }
