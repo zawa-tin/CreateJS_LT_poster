@@ -11,6 +11,7 @@ const enemyBulletUpperLimit = 2500;
 const playerBulletSize = 5;
 const enemyBulletSize = 5;
 const HP = 5;
+const BombUpperLimit = 3;
 
 const init = () => {
 
@@ -85,6 +86,7 @@ const init = () => {
             this.a = false;
             this.d = false;
             this.k = false;
+            this.i = false;
             this.enter = false;
         }
     }
@@ -111,7 +113,6 @@ const init = () => {
         }
 
         rotate(theta) {
-            console.log(theta);
             const resX = this.x * Math.cos(theta) - this.y * Math.sin(theta);
             const resY = this.x * Math.sin(theta) + this.y * Math.cos(theta);
             return new Vector(resX, resY);
@@ -162,6 +163,33 @@ const init = () => {
     }
 
     /*
+        Bomb
+        Boooommbb
+    */
+
+    class Bomb {
+        constructor() {
+            this.body = new createjs.Shape();
+            this.body.graphics.beginFill("Yellow");
+            this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, 0.1);
+            this.body.radius = 0.1;
+            stage.addChild(this.body);
+        }
+
+        spread() {
+            this.body.radius *= 1.2;
+            this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, this.body.radius);
+        }
+
+        destruct() {
+            bomb = undefined;
+            stage.removeChild(this.body);
+        }
+    }
+
+    let bomb = undefined;
+
+    /*
         player情報
         PPLLAAYYEERR
     */
@@ -177,6 +205,8 @@ const init = () => {
             this.body.radius = playerRadius;
             this.theta = 270;
             this.HP = HP;
+            this.bomb = BombUpperLimit;
+            this.bombSpan = Date.now();
             stage.addChild(player.body);
         }
 
@@ -207,6 +237,14 @@ const init = () => {
             bullet.fire(this.body, vector, 10);
             playerBullets.enqueue(bullet);
         }
+
+        useBomb() {
+            if (this.bomb > 0 && Date.now() - this.bombSpan > 500) {
+                this.bomb--;
+                this.bombSpan = Date.now();
+                bomb = new Bomb();
+            }
+        }
     }
 
     const player = new Player();
@@ -230,8 +268,6 @@ const init = () => {
 
         player.initialize();
     }
-
-
 
     /*
         Enemy情報
@@ -371,6 +407,9 @@ const init = () => {
         if (event.key === 'Enter') {
             keyboardInfo.enter = true;
         }
+        if (event.key === 'i') {
+            keyboardInfo.i = true;
+        }
     }
 
     const handleKeyup = (event) => {
@@ -385,6 +424,9 @@ const init = () => {
         }
         if (event.key === 'enter') {
             keyboardInfo.enter = false;
+        }
+        if (event.key === 'i') {
+            keyboardInfo.i = false;
         }
     }
     const handleStartButtonClick = () => {
@@ -438,6 +480,30 @@ const init = () => {
                     playerBullets.erase(i);
                     enemies.erase(j);
                 }
+            }
+        }
+        // ボム
+        if (bomb != undefined) {
+            bomb.spread();
+            for (let i = enemies.head ; i != enemies.tail ; i = (i + 1) % enemies.size) {
+                if (collide(bomb.body, enemies.data[i].body)) {
+                    score += 1;
+                    enemies.erase(i);
+                }
+            }
+            for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
+                if (collide(bomb.body, enemiesBullets.data[i].body)) {
+                    score += 1;
+                    enemiesBullets.erase(i);
+                }
+            }
+            if (bomb.body.radius > 200000) {
+                bomb.destruct();
+            }
+        }
+        else {
+            if (keyboardInfo.i) {
+                player.useBomb();
             }
         }
         // 敵の弾と地面のあたり判定
