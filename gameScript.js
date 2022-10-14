@@ -5,7 +5,7 @@ const screenEllipseY = 240;
 const groundRadius = 50;
 const playerRadius = 10;
 const enemyRadius = 10;
-const enemyUpperLimit = 2;
+const enemyUpperLimit = 10;
 const playerBulletUpperLimit = 200;
 const enemyBulletUpperLimit = 2500;
 const playerBulletSize = 5;
@@ -126,6 +126,7 @@ const init = () => {
         constructor(radius) {
             this.body = new createjs.Shape();
             this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, radius);
+            this.body.radius = radius;
             this.speed = 0;
             this.vector = new Vector(0, 0);
         } 
@@ -165,6 +166,7 @@ const init = () => {
             this.body = new createjs.Shape();
             this.body.graphics.beginFill("Red");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, playerRadius);
+            this.body.radius = playerRadius;
             this.theta = 270;
             this.HP = HP;
             stage.addChild(player.body);
@@ -205,6 +207,7 @@ const init = () => {
         ground = new createjs.Shape();
         ground.graphics.beginFill("White");
         ground.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, groundRadius);
+        ground.radius = groundRadius;
         stage.addChild(ground);
 
         player.initialize();
@@ -245,6 +248,7 @@ const init = () => {
             this.body = new createjs.Shape();
             this.body.graphics.beginFill("Blue");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
+            this.body.radius = enemyRadius;
             this.theta = initTheta;
             this.posEllipseX = screenEllipseX + 100;
             this.posEllipseY = screenEllipseY + 100;
@@ -289,7 +293,7 @@ const init = () => {
 
     const collide = (data1, data2) => {
         const dist = generateVector(data1).getBetweenDist(generateVector(data2));
-        return (dist <= 20);
+        return (dist <= data1.radius + data2.radius);
     }
 
     /* 
