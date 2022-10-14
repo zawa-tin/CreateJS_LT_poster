@@ -355,13 +355,20 @@ const init = () => {
         for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
             enemiesBullets.data[i].move();
         }
-        // あたり判定
+        // playerの弾と敵のあたり判定
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
             for (let j = enemies.head ; j != enemies.tail ; j = (j + 1) % enemies.size) {
                 if (collide(playerBullets.data[i].body, enemies.data[j].body)) {
                     playerBullets.erase(i);
                     enemies.erase(j);
                 }
+            }
+        }
+        // 敵の弾と地面のあたり判定
+        console.log(enemiesBullets.getLength());
+        for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
+            if (collide(enemiesBullets.data[i].body, ground)) {
+                enemiesBullets.erase(i);
             }
         }
     }
