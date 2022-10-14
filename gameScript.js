@@ -26,7 +26,7 @@ const init = () => {
     let player = { };
     let ground;
 
-    const getPos = () => {
+    const getPlayerPos = () => {
         let position = { };
         const rad = (player.theta / 180.0) * Math.PI;
         position.x = (groundRadius + playerRadius) * Math.cos(rad);
@@ -56,7 +56,7 @@ const init = () => {
         if (player.isMoveNegative) {
             player.theta -= 3;
         }
-        const position = getPos();
+        const position = getPlayerPos();
         player.body.x = position.x;
         player.body.y = position.y;
     }
@@ -93,7 +93,6 @@ const init = () => {
             this.body.graphics.beginFill("Blue");
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
             this.theta = initTheta;
-            // this.posRadius = 1000;
             this.posEllipseX = 750;
             this.posEllipseY = 540;
             this.move();
@@ -101,13 +100,6 @@ const init = () => {
         }
 
         move() {
-            /* 
-            if (this.posRadius > 300) {
-                this.posRadius--;
-            }
-            this.body.x = this.posRadius * Math.cos((this.theta / 180.0) * Math.PI);
-            this.body.y = this.posRadius * Math.sin((this.theta / 180.0) * Math.PI);
-            */
             if (this.posEllipseX > screenEllipseX) {
                 this.posEllipseX--;
             }
