@@ -93,6 +93,14 @@ const init = () => {
 
     const keyboardInfo = new KeyboardInfo();
 
+    /*
+        二次元ベクトル情報
+        getDist() : |vec|
+        getBetweenDist(opponent) : |opponent - vec|
+        normalize : vec /= |vec|
+        rotate(theta) : 回転
+    */
+
     class Vector {
         constructor(x, y) {
             this.x = x;
@@ -125,6 +133,10 @@ const init = () => {
 
     /*
         弾丸の情報
+        fire : 描画
+        move : 移動
+        isIn : 画面内に存在するか
+        reflect : 反射（一回のみ)
         BBUULLLLEETT
     */
 
@@ -175,6 +187,8 @@ const init = () => {
 
     /*
         Bomb
+        spread : でかくなる
+        destruct : 消す
         Boooommbb
     */
 
@@ -202,6 +216,7 @@ const init = () => {
 
     /*
         player情報
+
         PPLLAAYYEERR
     */
 
@@ -260,6 +275,7 @@ const init = () => {
 
     const player = new Player();
 
+    // 体力を表すハート
     const hearts = [];
 
     const gameInit = () => {
