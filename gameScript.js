@@ -14,6 +14,9 @@ const HP = 5;
 const BombUpperLimit = 3;
 
 const init = () => {
+    // 音源を登録
+    createjs.Sound.registerSound("Resources/bgm.mp3", "bgm");
+
 
     // ステージを追加
     let stage = new createjs.Stage("myCanvas");
@@ -294,6 +297,8 @@ const init = () => {
         }
 
         player.initialize();
+
+        createjs.Sound.play("bgm");
     }
 
     /*
@@ -556,6 +561,8 @@ const init = () => {
                 stage.removeChild(hearts[hearts.length - 1]);
                 hearts.pop();
                 if (player.HP < 0) {
+                    createjs.Sound.stop();
+                    createjs.Sound.removeSound("Resources/bgm.mp3");
                     alert("game over");
                     stage.removeAllChildren();
                     stage.addChild(bg);
