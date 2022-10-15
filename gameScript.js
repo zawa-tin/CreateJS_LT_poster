@@ -137,6 +137,7 @@ const init = () => {
             this.body.graphics.beginFill("White").drawCircle(screenSizeX / 2, screenSizeY / 2, radius);
             this.body.radius = radius;
             this.speed = 0;
+            this.flagReflection = true;
             this.vector = new Vector(0, 0);
         } 
 
@@ -158,6 +159,16 @@ const init = () => {
             res &&= (-screenSizeX / 2 <= this.body.x && this.body.x <= screenSizeX / 2);
             res &&= (-screenSizeY / 2 <= this.body.y && this.body.y <= screenSizeY / 2);
             return res;
+        }
+
+        reflect() {
+            this.flagReflection = false;
+            if (!(-screenSizeX / 2 <= this.body.x && this.body.x <= screenSizeX / 2)) {
+                this.vector.x *= -1;
+            }
+            if (!(-screenSizeY / 2 <= this.body.y && this.body.y <= screenSizeY / 2)) {
+                this.vector.y *= -1;
+            }
         }
 
     }
@@ -471,6 +482,15 @@ const init = () => {
         // 敵の弾の移動
         for (let i = enemiesBullets.head ; i != enemiesBullets.tail ; i = (i + 1) % enemiesBullets.size) {
             enemiesBullets.data[i].move();
+            // 敵の弾の画面外反射
+            if (!enemiesBullets.data[i].isIn()) {
+                if (enemiesBullets.data[i].flagReflection) {
+                    enemiesBullets.data[i].reflect();
+                }
+                else {
+                    enemiesBullets.erase(i);
+                }
+            }
         }
         // playerの弾と敵のあたり判定
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
