@@ -307,15 +307,16 @@ const init = () => {
     */
 
     class Enemy {
-        constructor(initTheta) {
+        constructor(initTheta, color) {
             this.body = new createjs.Shape();
-            this.body.graphics.beginFill("Blue");
+            this.body.graphics.beginFill(color);
             this.body.graphics.drawCircle(screenSizeX / 2, screenSizeY / 2, enemyRadius);
             this.body.radius = enemyRadius;
             this.theta = initTheta;
             this.posEllipseX = screenEllipseX + 100;
             this.posEllipseY = screenEllipseY + 100;
             this.attackTime = Date.now();
+            this.HP = 1;
             this.move();
             stage.addChild(this.body);
         }
@@ -351,15 +352,36 @@ const init = () => {
         }
     }
 
+    class Enemy3 extends Enemy {
+        constructor(initTheta) {
+            super(initTheta, "Green");
+            this.HP = 5;
+        }
+        attack() {
+            this.attackTime = Date.now();
+            for (let i = 0 ; i < 3 ; i++) {
+                const direction = new Vector(player.body.x - this.body.x, player.body.y - this.body.y).normalize().rotate(-1 + i);
+                const bullet = new Bullet(enemyBulletSize);
+                enemiesBullets.enqueue(bullet);
+                bullet.fire(this.body, direction, enemyBulletSize);
+            }
+        }
+    }
+
     let enemies = new Queue(enemyUpperLimit);
 
     const enemyGenerate = () => {
-        if (Math.random() < 2.0 / 3.0) {
-            const enemy = new Enemy(Math.floor(Math.random() * 360));
+        const randValue = Math.random();
+        if (randValue > 1.0 / 3.0) {
+            const enemy = new Enemy(Math.floor(Math.random() * 360), "Blue");
+            enemies.enqueue(enemy);
+        }
+        else if (randValue > 0.1) {
+            const enemy = new Enemy2(Math.floor(Math.random() * 360), "Blue");
             enemies.enqueue(enemy);
         }
         else {
-            const enemy = new Enemy2(Math.floor(Math.random() * 360));
+            const enemy = new Enemy3(Math.floor(Math.random() * 360));
             enemies.enqueue(enemy);
         }
     }
@@ -517,9 +539,12 @@ const init = () => {
         for (let i = playerBullets.head ; i != playerBullets.tail ; i = (i + 1) % playerBullets.size) {
             for (let j = enemies.head ; j != enemies.tail ; j = (j + 1) % enemies.size) {
                 if (collide(playerBullets.data[i].body, enemies.data[j].body)) {
-                    score += 10;
+                    enemies.data[j].HP--;
+                    if (enemies.data[j].HP <= 0) {
+                        score += 10;
+                        enemies.erase(j);
+                    }
                     playerBullets.erase(i);
-                    enemies.erase(j);
                 }
             }
         }
